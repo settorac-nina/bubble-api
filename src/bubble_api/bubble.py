@@ -234,11 +234,9 @@ class Bubble(BaseModel):
 
         if verbose_level >= 2:
             print("GET request URL : ", full_url)
+            print("GET request parameters : ", json.dumps(params, indent=4))
 
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key is not None else None
-
-        if verbose_level >= 2:
-            print("GET request parameters : ", json.dumps(params, indent=4))
 
         break_while = False
         retry_index = 0
@@ -247,7 +245,7 @@ class Bubble(BaseModel):
 
         while retry_index <= n_retries and not break_while:
             try:
-                if retry_index >= 1 or verbose_level >= 2:
+                if (retry_index >= 1 or verbose_level >= 2) and verbose_level >= 1:
                     print(f"GET request - Retry index : {retry_index}/{n_retries}")
 
                 resp = requests.get(
@@ -284,6 +282,7 @@ class Bubble(BaseModel):
                     )
 
                 elif resp.status_code in [400, 404]:
+                    break_while = True
                     if resp.status_code == 404 and unique_id is not None:
                         return GetDataResp(
                             results=[],
@@ -291,7 +290,6 @@ class Bubble(BaseModel):
                             count=0
                         )
 
-                    break_while = True
                     if verbose_level >= 1:
                         print(f"GET request - {resp.status_code} - {str(resp.content)}")
 
@@ -543,7 +541,7 @@ class Bubble(BaseModel):
                             raise ValueError(f"{file_format} is not a valid value for file_format")
 
         return GetFullDataResp(
-            results=None if path_to_file else full_results,
+            results=None if path_to_file is not None else full_results,
             path_to_file=path_to_file
         )
 
@@ -679,11 +677,9 @@ class Bubble(BaseModel):
 
         if verbose_level >= 2:
             print("PATCH request URL : ", full_url)
+            print("PATCH request parameters : ", json.dumps(params, indent=4))
 
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key is not None else None
-
-        if verbose_level >= 2:
-            print("PATCH request parameters : ", json.dumps(params, indent=4))
 
         break_while = False
         retry_index = 0
@@ -692,7 +688,7 @@ class Bubble(BaseModel):
 
         while retry_index <= n_retries and not break_while:
             try:
-                if retry_index >= 1 or verbose_level >= 2:
+                if (retry_index >= 1 or verbose_level >= 2) and verbose_level >= 1:
                     print(f"PATCH request - Retry index : {retry_index}/{n_retries}")
 
                 resp = requests.patch(
@@ -838,7 +834,7 @@ class Bubble(BaseModel):
 
         while retry_index <= n_retries and not break_while:
             try:
-                if retry_index >= 1 or verbose_level >= 2:
+                if (retry_index >= 1 or verbose_level >= 2) and verbose_level >= 1:
                     print(f"POST request - Retry index : {retry_index}/{n_retries}")
 
                 resp = requests.post(
