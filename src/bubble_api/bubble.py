@@ -172,7 +172,8 @@ class Bubble(BaseModel):
             base_wait_time: Optional[Annotated[int, Field(ge=MIN_WAIT_TIME)]] = None,
             exponential_backoff: Optional[bool] = None,
             verbose_level: Optional[Annotated[int, Field(ge=MIN_VERB_LEV, le=MAX_VERB_LEV)]] = None,
-            timeout: Optional[Annotated[int, Field(ge=0)]] = None
+            timeout: Optional[Annotated[int, Field(ge=0)]] = None,
+            exclude_remaining: Optional[bool] = False
     ) -> GetDataResp:
         """
         This function is used to make GET requests to Bubble and handle errors and retries.
@@ -197,6 +198,7 @@ class Bubble(BaseModel):
         If None, use self.verbose_level
         :param timeout: Overrides parent value. Use this parameter to set request timeout in seconds. Set 0 to remove
         timeout. (!) None will not erase the parent value (!).
+        :param exclude_remaining: If set to True, remaining is an estimation and not the exact count
         If None, use self.timeout
         """
         if n_retries is None:
@@ -229,7 +231,8 @@ class Bubble(BaseModel):
                 "cursor": cursor,
                 "constraints": json.dumps([c.dict() for c in constraints]) if constraints is not None else None,
                 "sort_field": sort_field,
-                "descending": descending
+                "descending": descending,
+                "exclude_remaining": exclude_remaining
             }
 
         if verbose_level >= 2:
@@ -612,7 +615,8 @@ class Bubble(BaseModel):
                 base_wait_time=base_wait_time,
                 exponential_backoff=exponential_backoff,
                 verbose_level=verbose_level,
-                timeout=timeout
+                timeout=timeout,
+                exclude_remaining=False if fail_if_multiple_results else True
             )
 
         if fail_if_multiple_results and get_data_resp.remaining > 0:
