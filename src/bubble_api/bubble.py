@@ -921,37 +921,3 @@ class Bubble(BaseModel):
             raise ValueError(f"{request_failed} - Last response content : {str(resp.content)}")
         else:  # Can happen if all requests lead to a ConnectionError or ReadTimeout
             raise ValueError(f"{request_failed} - Response is None ({no_resp_error})")
-
-
-
-
-# from datetime import datetime
-# import shutil
-#
-#
-# shutil.make_archive(f"tmp/Brochures-{datetime.now().date().isoformat()}.zip", 'zip', "tmp/brochures")
-#
-
-import requests
-
-
-# resp = requests.post(
-#     "https://cuure.com/version-test/api/1.1/wf/a",
-#     json={"email": "settorac@hotmail.fr", "password": "Qadq'olr1af?"}
-# )
-#
-# print(resp.content)
-
-# resp = requests.post(
-#     "https://cuure.com/version-test/api/1.1/wf/aa",
-#     headers={"Authorization": "Bearer 1675357591646x556547812179584830"}
-# )
-#
-# print(resp.json())
-
-resp = requests.get(
-    "https://cuure.com/version-test/api/1.1/obj/user",
-    headers={"Authorization": "Bearer 1675357591646x556547812179584830"}
-)
-
-print(resp.json())
