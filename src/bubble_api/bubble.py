@@ -584,7 +584,7 @@ class Bubble(BaseModel):
         timeout. (!) None will not erase the parent value (!).
         If None, use self.timeout
         """
-        if column_id == "_id" or "unique_id":
+        if column_id in ["_id", "unique_id"]:
             get_data_resp = self.make_request(
                 bubble_type=bubble_type,
                 unique_id=unique_id,
