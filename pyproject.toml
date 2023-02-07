@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bubble_api"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   { name="Dylan NINA", email="settorac.nina@gmail.com" },
 ]
