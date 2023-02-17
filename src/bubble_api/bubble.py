@@ -299,6 +299,8 @@ class Bubble(BaseModel):
                     json_resp = resp.json()
                     if "body" in json_resp:
                         raise ValueError(json.dumps(json_resp.get("body"), indent=4))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
 
                 elif resp.status_code == 401:  # Unauthorized
                     break_while = True
@@ -308,6 +310,8 @@ class Bubble(BaseModel):
                     json_resp = resp.json()
                     if "translation" in json_resp:
                         raise ValueError(json_resp.get("translation"))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
 
                 else:
                     if verbose_level >= 1:
@@ -716,6 +720,8 @@ class Bubble(BaseModel):
                     json_resp = resp.json()
                     if "body" in json_resp:
                         raise ValueError(json.dumps(json_resp.get("body"), indent=4))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
 
                 elif resp.status_code == 401:  # Unauthorized
                     break_while = True
@@ -725,6 +731,8 @@ class Bubble(BaseModel):
                     json_resp = resp.json()
                     if "translation" in json_resp:
                         raise ValueError(json_resp.get("translation"))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
 
                 else:
                     if verbose_level >= 1:
@@ -863,6 +871,8 @@ class Bubble(BaseModel):
                     json_resp = resp.json()
                     if "body" in json_resp:
                         raise ValueError(json.dumps(json_resp.get("body"), indent=4))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
 
                 elif resp.status_code == 401:  # Unauthorized
                     break_while = True
@@ -872,6 +882,157 @@ class Bubble(BaseModel):
                     json_resp = resp.json()
                     if "translation" in json_resp:
                         raise ValueError(json_resp.get("translation"))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
+
+                else:
+                    if verbose_level >= 1:
+                        print(f"POST request - {resp.status_code} - {str(resp.content)}")
+
+            except AttributeError as ae:  # If resp.json() fails
+                if verbose_level >= 1:
+                    print("POST request - AttributeError", str(ae))
+
+            except ConnectionError as ce:
+                no_resp_error = "ConnectionError"
+                if verbose_level >= 1:
+                    print("POST request - ConnectionError :", str(ce))
+
+            except ReadTimeout as rto:
+                no_resp_error = "ReadTimeout"
+                if verbose_level >= 1:
+                    print("POST request - ReadTimeout :", str(rto))
+
+            finally:
+                if not break_while and retry_index < n_retries:
+                    if exponential_backoff:
+                        sleep_time = 0 if retry_index == 0 else base_wait_time ** retry_index
+                    else:
+                        sleep_time = base_wait_time
+
+                    if verbose_level >= 1 and sleep_time > 0:
+                        print(f"POST request - Wait {sleep_time} second(s)")
+
+                    time.sleep(sleep_time)
+
+                retry_index += 1
+
+        # All requests failed
+        if n_retries == 0:
+            request_failed = "The request failed"
+        else:
+            request_failed = "All requests failed"
+
+        if verbose_level >= 1:
+            if resp is not None:
+                print(f"POST request - {request_failed} - Last response content : {str(resp.content)}")
+            else:
+                print(f"POST request - {request_failed} - Response is None ({no_resp_error})")
+
+        if resp is not None:
+            raise ValueError(f"{request_failed} - Last response content : {str(resp.content)}")
+        else:  # Can happen if all requests lead to a ConnectionError or ReadTimeout
+            raise ValueError(f"{request_failed} - Response is None ({no_resp_error})")
+
+    @validate_arguments
+    def make_wf_request(
+            self,
+            wf_name: str,
+            params: Optional[dict] = None,
+            n_retries: Optional[Annotated[int, Field(ge=MIN_RETRIES, le=MAX_RETRIES)]] = None,
+            base_wait_time: Optional[Annotated[int, Field(ge=MIN_WAIT_TIME)]] = None,
+            exponential_backoff: Optional[bool] = None,
+            verbose_level: Optional[Annotated[int, Field(ge=MIN_VERB_LEV, le=MAX_VERB_LEV)]] = None,
+            timeout: Optional[Annotated[int, Field(ge=0)]] = None
+    ) -> GetDataResp:
+        """
+        This function is used to make POST requests to Bubble and handle errors and retries.
+        :param wf_name: Name of the workflow to execute
+        :param params: Argument to provide to the workflow
+        :param n_retries: Overrides parent value. Maximum number of retries in case of request failure.
+        If None, use self.n_retries
+        :param base_wait_time: Overrides parent value. Time to wait between retries in seconds.
+        If None, use self.base_wait_time
+        :param exponential_backoff: Overrides parent value. Whether to use exponential backoff for time between retries.
+        If None, use self.exponential_backoff
+        :param verbose_level: Overrides parent value. Verbose level.
+        If None, use self.verbose_level
+        :param timeout: Overrides parent value. Use this parameter to set request timeout in seconds. Set 0 to remove
+        timeout. (!) None will not erase the parent value (!).
+        """
+        if n_retries is None:
+            n_retries = self.n_retries
+        if base_wait_time is None:
+            base_wait_time = self.base_wait_time
+        if exponential_backoff is None:
+            exponential_backoff = self.exponential_backoff
+        if verbose_level is None:
+            verbose_level = self.verbose_level
+        if timeout is None:
+            timeout = self.timeout
+        if timeout == 0:
+            timeout = None
+
+        if exponential_backoff and base_wait_time <= 1:
+            raise ValueError("base_wait_time must be greater than 1 if exponential_backoff is True")
+
+        base_url = f"{self.base_url}/version-{self.bubble_version}" if self.bubble_version != "live" else \
+            self.base_url
+
+        full_url = f"{base_url}/api/{BUBBLE_API_VERSION}/wf/{wf_name}"
+
+        if verbose_level >= 2:
+            print("POST request URL : ", full_url)
+            print("POST request parameters : ", json.dumps(params, indent=4))
+
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key is not None else None
+
+        break_while = False
+        retry_index = 0
+        resp = None
+        no_resp_error = "Unknown error"
+
+        while retry_index <= n_retries and not break_while:
+            try:
+                if (retry_index >= 1 or verbose_level >= 2) and verbose_level >= 1:
+                    print(f"POST request - Retry index : {retry_index}/{n_retries}")
+
+                resp = requests.post(
+                    full_url,
+                    headers=headers,
+                    json=params,
+                    timeout=timeout
+                )
+
+                if resp.ok:
+                    break_while = True
+                    if verbose_level >= 2:
+                        print("POST request - Success - Response content :", str(resp.content))
+
+                    json_resp = resp.json()
+                    return json_resp
+
+                elif resp.status_code in [400, 404]:
+                    break_while = True
+                    if verbose_level >= 1:
+                        print(f"POST request - {resp.status_code} - {str(resp.content)}")
+
+                    json_resp = resp.json()
+                    if "body" in json_resp:
+                        raise ValueError(json.dumps(json_resp.get("body"), indent=4))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
+
+                elif resp.status_code == 401:  # Unauthorized
+                    break_while = True
+                    if verbose_level >= 1:
+                        print(f"POST request - 401 - {str(resp.content)}")
+
+                    json_resp = resp.json()
+                    if "translation" in json_resp:
+                        raise ValueError(json_resp.get("translation"))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
 
                 else:
                     if verbose_level >= 1:
