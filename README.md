@@ -137,4 +137,12 @@ user_unique_id = bubble.update_object(
     unique_id="1655199935778x975916702499961900"
 )
 
+# Trigger WF
+resp = bubble.make_wf_request(
+    wf_name="my_wf",
+    params={
+        "customer": "123x321"
+    }
+)
+
 ````
