@@ -4,13 +4,14 @@ import json
 import pandas as pd
 from requests.exceptions import ConnectionError
 from requests.exceptions import ReadTimeout
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validate_arguments
 from pydantic.typing import Annotated
 from typing import Optional, List, Literal, Any
 from threading import Thread
+from datetime import datetime
 
 
 BUBBLE_API_VERSION = "1.1"
@@ -70,6 +71,12 @@ class Constraint(BaseModel):
         "geographic_search"
     ]
     value: Any = None
+    
+    @validator()
+    def datetime_to_string(cls, value):
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        return value
 
 
 class GetDataResp(BaseModel):
@@ -1082,3 +1089,196 @@ class Bubble(BaseModel):
             raise ValueError(f"{request_failed} - Last response content : {str(resp.content)}")
         else:  # Can happen if all requests lead to a ConnectionError or ReadTimeout
             raise ValueError(f"{request_failed} - Response is None ({no_resp_error})")
+
+    @validate_arguments
+    def make_delete_request_by__id(
+            self,
+            bubble_type: str,
+            unique_id: str,
+            n_retries: Optional[Annotated[int, Field(ge=MIN_RETRIES, le=MAX_RETRIES)]] = None,
+            base_wait_time: Optional[Annotated[int, Field(ge=MIN_WAIT_TIME)]] = None,
+            exponential_backoff: Optional[bool] = None,
+            verbose_level: Optional[Annotated[int, Field(ge=MIN_VERB_LEV, le=MAX_VERB_LEV)]] = None,
+            timeout: Optional[Annotated[int, Field(ge=0)]] = None,
+            exclude_remaining: Optional[bool] = False
+    ) -> GetDataResp:
+        
+        if n_retries is None:
+            n_retries = self.n_retries
+        if base_wait_time is None:
+            base_wait_time = self.base_wait_time
+        if exponential_backoff is None:
+            exponential_backoff = self.exponential_backoff
+        if verbose_level is None:
+            verbose_level = self.verbose_level
+        if timeout is None:
+            timeout = self.timeout
+        if timeout == 0:
+            timeout = None   
+
+        if exponential_backoff and base_wait_time <= 1:
+            raise ValueError("base_wait_time must be greater than 1 if exponential_backoff is True")
+
+        base_url = f"{self.base_url}/version-{self.bubble_version}" if self.bubble_version != "live" else \
+            self.base_url
+
+        full_url = f"{base_url}/api/{BUBBLE_API_VERSION}/obj/{bubble_type}/{unique_id}"
+        params = {}
+
+        if verbose_level >= 2:
+            print("DELETE request URL : ", full_url)
+
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key is not None else None
+
+        break_while = False
+        retry_index = 0
+        resp = None
+        no_resp_error = "Unknown error"
+
+        while retry_index <= n_retries and not break_while:
+            try:
+                if (retry_index >= 1 or verbose_level >= 2) and verbose_level >= 1:
+                    print(f"DELET request - Retry index : {retry_index}/{n_retries}")
+
+                resp = requests.delete(
+                    full_url,
+                    headers=headers,
+                    params=params,
+                    timeout=timeout
+                )
+                print(resp.status_code, resp.ok)
+
+                if resp.ok:
+                    break_while = True
+                    return GetDataResp(
+                        results=[],
+                        remaining=0,
+                        count=0
+                    )
+
+                elif resp.status_code in [400, 404]:
+                    break_while = True
+                    if resp.status_code == 404 and unique_id is not None:
+                        return GetDataResp(
+                            results=[],
+                            remaining=0,
+                            count=0
+                        )
+
+                    if verbose_level >= 1:
+                        print(f"DELETE request - {resp.status_code} - {str(resp.content)}")
+
+                    json_resp = resp.json()
+                    if "body" in json_resp:
+                        raise ValueError(json.dumps(json_resp.get("body"), indent=4))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
+
+                elif resp.status_code == 401:  # Unauthorized
+                    break_while = True
+                    if verbose_level >= 1:
+                        print(f"DELETE request - 401 - {str(resp.content)}")
+
+                    json_resp = resp.json()
+                    if "translation" in json_resp:
+                        raise ValueError(json_resp.get("translation"))
+                    else:
+                        raise ValueError(f"Failed with status code {resp.status_code}")
+
+                else:
+                    if verbose_level >= 1:
+                        print(f"DELETE request - {resp.status_code} - {str(resp.content)}")
+
+            except AttributeError as ae:  # If resp.json() fails
+                if verbose_level >= 1:
+                    print("DELETE request - AttributeError", str(ae))
+
+            except ConnectionError as ce:
+                no_resp_error = "ConnectionError"
+                if verbose_level >= 1:
+                    print("DELETE request - ConnectionError :", str(ce))
+
+            except ReadTimeout as rto:
+                no_resp_error = "ReadTimeout"
+                if verbose_level >= 1:
+                    print("DELETE request - ReadTimeout :", str(rto))
+
+            finally:
+                if not break_while and retry_index < n_retries:
+                    if exponential_backoff:
+                        sleep_time = 0 if retry_index == 0 else base_wait_time ** retry_index
+                    else:
+                        sleep_time = base_wait_time
+
+                    if verbose_level >= 1 and sleep_time > 0:
+                        print(f"DELETE request - Wait {sleep_time} second(s)")
+
+                    time.sleep(sleep_time)
+
+                retry_index += 1
+
+        # All requests failed
+        if n_retries == 0:
+            request_failed = "The request failed"
+        else:
+            request_failed = "All requests failed"
+
+        if verbose_level >= 1:
+            if resp is not None:
+                print(f"DELETE request - {request_failed} - Last response content : {str(resp.content)}")
+            else:
+                print(f"DELETE request - {request_failed} - Response is None ({no_resp_error})")
+
+        if resp is not None:
+            raise ValueError(f"{request_failed} - Last response content : {str(resp.content)}")
+        else:  # Can happen if all requests lead to a ConnectionError or ReadTimeout
+            raise ValueError(f"{request_failed} - Response is None ({no_resp_error})")
+        
+    def delete_with_constraints(
+            self,
+            bubble_type: str,
+            constraints: Optional[List[Constraint]] = None,
+            n_retries: Optional[Annotated[int, Field(ge=MIN_RETRIES, le=MAX_RETRIES)]] = None,
+            base_wait_time: Optional[Annotated[int, Field(ge=MIN_WAIT_TIME)]] = None,
+            exponential_backoff: Optional[bool] = None,
+            verbose_level: Optional[Annotated[int, Field(ge=MIN_VERB_LEV, le=MAX_VERB_LEV)]] = None,
+            timeout: Optional[Annotated[int, Field(ge=0)]] = None,
+            exclude_remaining: Optional[bool] = False
+    ):
+        
+        if n_retries is None:
+            n_retries = self.n_retries
+        if base_wait_time is None:
+            base_wait_time = self.base_wait_time
+        if exponential_backoff is None:
+            exponential_backoff = self.exponential_backoff
+        if verbose_level is None:
+            verbose_level = self.verbose_level
+        if timeout is None:
+            timeout = self.timeout
+        if timeout == 0:
+            timeout = None 
+            
+        make_request = lambda: self.make_request(
+            bubble_type=bubble_type,
+            constraints=constraints,
+            n_retries=n_retries,
+            base_wait_time=base_wait_time,
+            exponential_backoff=exponential_backoff,
+            verbose_level=verbose_level,
+            timeout=timeout,
+            exclude_remaining=exclude_remaining
+        )
+        
+        while objs_to_delete := make_request().results:
+            for obj in objs_to_delete:
+                self.make_delete_request_by__id(
+                    bubble_type=bubble_type,
+                    unique_id=obj["_id"],
+                    n_retries=n_retries,
+                    base_wait_time=base_wait_time,
+                    exponential_backoff=exponential_backoff,
+                    verbose_level=verbose_level,
+                    timeout=timeout,
+                    exclude_remaining=exclude_remaining
+                )
