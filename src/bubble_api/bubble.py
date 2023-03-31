@@ -72,7 +72,7 @@ class Constraint(BaseModel):
     ]
     value: Any = None
     
-    @validator()
+    @validator('value')
     def datetime_to_string(cls, value):
         if isinstance(value, datetime):
             return value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
