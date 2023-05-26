@@ -28,6 +28,7 @@ def cleaning_feedback_data(bubble_wrapper):
     clean_test_data(bubble_wrapper)
 
 
+@pytest.mark.integration
 def test__create_object(bubble_wrapper):
     object_id = bubble_wrapper.create(
         "appfeedback",
@@ -37,6 +38,7 @@ def test__create_object(bubble_wrapper):
     assert isinstance(object_id, str)
 
 
+@pytest.mark.integration
 def test__get_object_by_id(bubble_wrapper):
     object_id = bubble_wrapper.create(
         "appfeedback",
@@ -52,6 +54,7 @@ def test__get_object_by_id(bubble_wrapper):
     assert feedback["app_version"] == "2.2.1 test"
 
 
+@pytest.mark.integration
 def test__delete_object_by_id(bubble_wrapper):
     object_id = bubble_wrapper.create(
         "appfeedback",
@@ -77,6 +80,7 @@ def test__delete_object_by_id(bubble_wrapper):
     assert "404 Client Error: Not Found " in str(exc_info.value)
 
 
+@pytest.mark.integration
 def test__update_object(bubble_wrapper):
     object_id = bubble_wrapper.create(
         "appfeedback",
@@ -99,6 +103,7 @@ def test__update_object(bubble_wrapper):
     assert feedback["app_version"] == "2.2.3 test"
 
 
+@pytest.mark.integration
 def test__replace_object(bubble_wrapper):
     object_id = bubble_wrapper.create(
         "appfeedback",
@@ -121,6 +126,7 @@ def test__replace_object(bubble_wrapper):
     assert feedback["app_version"] == "2.3.4 test"
 
 
+@pytest.mark.integration
 def test__count_objects_with_constraints(bubble_wrapper):
     bubble_wrapper.create(
         "appfeedback",
@@ -145,6 +151,7 @@ def test__count_objects_with_constraints(bubble_wrapper):
     assert res == 3
 
 
+@pytest.mark.integration
 def test__get_objects_with_constraints(bubble_wrapper):
     id_12 = bubble_wrapper.create(
         "appfeedback",
@@ -169,6 +176,7 @@ def test__get_objects_with_constraints(bubble_wrapper):
     assert set([r["_id"] for r in res]) == {id_11, id_12}
 
 
+@pytest.mark.integration
 def test__create_bulk(bubble_wrapper):
     bulk_res = bubble_wrapper.create_bulk(
         "appfeedback",
