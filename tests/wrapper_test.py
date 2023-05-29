@@ -21,7 +21,7 @@ def extract_url_params(url):
 def bubble_wrapper():
     return BubbleWrapper(
         base_url=BASE_URL_EXAMPLE,
-        api_key="API_KEY",
+        api_token="API_KEY",
         bubble_version="test",
     )
 

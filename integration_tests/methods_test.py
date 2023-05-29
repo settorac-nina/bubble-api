@@ -10,7 +10,7 @@ from bubble_api import BubbleWrapper, Field
 def bubble_wrapper():
     return BubbleWrapper(
         base_url="https://cuure.com",
-        api_key=os.environ["BUBBLE_API_KEY"],
+        api_token=os.environ["BUBBLE_API_KEY"],
         bubble_version="test",
     )
 

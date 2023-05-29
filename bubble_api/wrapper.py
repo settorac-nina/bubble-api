@@ -11,18 +11,20 @@ API_VERSION = "1.1"
 
 
 class BubbleWrapper:
-    def __init__(self, base_url, api_key=None, bubble_version="live", *args, **kwargs):
+    def __init__(
+        self, base_url, api_token=None, bubble_version="test", *args, **kwargs
+    ):
         if bubble_version != "live":
             base_url = f"{base_url}/version-{bubble_version}"
         self.base_url = f"{base_url}/api/{API_VERSION}/obj"
-        self.api_key = api_key
+        self.api_token = api_token
 
     def _get_headers(self):
         return (
             {
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {self.api_token}",
             }
-            if self.api_key is not None
+            if self.api_token is not None
             else None
         )
 
