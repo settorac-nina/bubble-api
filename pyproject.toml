@@ -6,17 +6,19 @@ build-backend = "hatchling.build"
 name = "bubble_api"
 version = "0.4.0"
 authors = [
-  { name="Dylan NINA", email="settorac.nina@gmail.com" },
-    {name="Mathis Bourdin", email="mathisbrdn@gmail.com"}
+    { name="Dylan NINA", email="settorac.nina@gmail.com" },
+    { name="Mathis Bourdin", email="mathisbrdn@gmail.com" },
 ]
 description = "Interactions with Bubble.io API in Python made easy !"
 readme = "README.md"
 requires-python = ">=3.8"
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
 dependencies = [
     'requests',
 ]
