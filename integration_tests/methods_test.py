@@ -77,7 +77,7 @@ def test__delete_object_by_id(bubble_wrapper):
             object_id,
         )
 
-    assert "404 Client Error: Not Found " in str(exc_info.value)
+    assert "404 Client Error: Not Found" in str(exc_info.value)
 
 
 @pytest.mark.integration

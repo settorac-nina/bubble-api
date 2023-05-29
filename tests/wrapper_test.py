@@ -1,11 +1,20 @@
+from urllib.parse import urlparse, parse_qs
+import json
+
+import requests
 import requests_mock
 import pytest
 
-from bubble_api import BubbleWrapper
+from bubble_api import BubbleWrapper, Field
 
 
 BASE_URL_EXAMPLE = "https://example.com"
 API_URL_EXAMPLE = f"{BASE_URL_EXAMPLE}/version-test/api/1.1/obj"
+
+
+def extract_url_params(url):
+    parse_result = urlparse(url)
+    return parse_qs(str(parse_result.query))
 
 
 @pytest.fixture(scope="session")
@@ -113,3 +122,79 @@ def test__bubble_replace_object(bubble_wrapper, mocker):
     assert mocker.last_request.method == "PUT"
     assert mocker.last_request.url == expected_url
     assert mocker.last_request.json() == example_fields
+
+
+def test__bubble_count_objects(bubble_wrapper, mocker):
+    example_table = "example_table"
+    constraints = [
+        Field("Name") == "Bob",
+        Field("Age") > 18,
+    ]
+    expected_url = f"{API_URL_EXAMPLE}/{example_table}"
+
+    mocker.get(
+        expected_url,
+        json={
+            "response": {
+                "data": {},
+                "count": 100,
+                "remaining": 50,
+            }
+        },
+    )
+
+    count = bubble_wrapper.count_objects(example_table, constraints)
+
+    assert count == 150
+    assert mocker.called_once
+    assert mocker.last_request.method == "GET"
+    assert mocker.last_request.url.startswith(expected_url)
+
+    last_request_params = extract_url_params(mocker.last_request.url)
+    assert [con.to_dict() for con in constraints] == json.loads(
+        last_request_params["constraints"][0]
+    )
+    assert json.loads(last_request_params["limit"][0]) == 100
+    assert json.loads(last_request_params["cursor"][0]) == 0
+    assert mocker.last_request.body is None
+
+
+def test__bubble_retry_server_error(bubble_wrapper, mocker):
+    example_table = "example_table"
+    example_id = "example_id"
+    expected_url = f"{API_URL_EXAMPLE}/{example_table}/{example_id}"
+    mocker.get(
+        expected_url,
+        [
+            {"text": "Server Error", "status_code": 500},
+            {"json": {"response": {"data": "test"}, "status_code": 200}},
+        ],
+    )
+
+    bubble_wrapper.get_by_id(example_table, example_id)
+
+    assert mocker.call_count == 2
+    assert mocker.last_request.method == "GET"
+    assert mocker.last_request.url == expected_url
+    assert mocker.last_request.body is None
+
+
+def test__bubble_retry_correct_number_of_time(bubble_wrapper, mocker):
+    example_table = "example_table"
+    example_id = "example_id"
+    expected_url = f"{API_URL_EXAMPLE}/{example_table}/{example_id}"
+    mocker.get(
+        expected_url,
+        text="Server Error",
+        status_code=500,
+    )
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        bubble_wrapper.get_by_id(example_table, example_id, nb_retries=3)
+
+    assert "Server Error" in str(exc_info.value)
+
+    assert mocker.call_count == 4
+    assert mocker.last_request.method == "GET"
+    assert mocker.last_request.url == expected_url
+    assert mocker.last_request.body is None
