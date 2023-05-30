@@ -62,6 +62,36 @@ class BubbleWrapper:
             **kwargs,
         )
 
+    def get(
+        self,
+        bubble_type,
+        bubble_id=None,
+        constraints: list[Constraint] = None,
+        **kwargs,
+    ):
+        if bubble_id is None:
+            return self.get_by_id(bubble_type, bubble_id, **kwargs)
+        return self.get_objects(bubble_type, constraints, **kwargs)
+
+    def create(self, bubble_type, field: dict | list[dict] | None = None, **kwargs):
+        if isinstance(field, list):
+            return self.create_bulk(bubble_type, fields=field, **kwargs)
+        return self.create_object(bubble_type, field, **kwargs)
+
+    def delete(
+        self, bubble_type, bubble_id=None, bubble_ids=None, constraints=None, **kwargs
+    ):
+        if bubble_id is not None:
+            return self.delete_by_id(bubble_type, bubble_id, **kwargs)
+        if bubble_ids is not None:
+            return self.delete_by_ids(bubble_type, bubble_ids, **kwargs)
+        if constraints is not None:
+            return self.delete_objects(bubble_type, constraints, **kwargs)
+        raise Warning(
+            "You must specify at least one of bubble_id, bubble_ids or constraints.",
+            "If you intend to delete the whole table, please use the delete_all method.",
+        )
+
     def get_by_id(self, bubble_type, bubble_id, **kwargs):
         url = f"{self.base_url}/{bubble_type}/{bubble_id}"
 
@@ -69,7 +99,7 @@ class BubbleWrapper:
 
         return resp.json()["response"]
 
-    def create(self, bubble_type, fields: dict, **kwargs):
+    def create_object(self, bubble_type, fields: dict, **kwargs):
         url = f"{self.base_url}/{bubble_type}"
 
         resp = self.make_request(method="POST", url=url, json=fields, **kwargs)
@@ -91,12 +121,16 @@ class BubbleWrapper:
 
         self.make_request(method="DELETE", url=url, **kwargs)
 
-    def delete_objects(self, bubble_type, constraints: list[Constraint], **kwargs):
-        if constraints is None:
-            # TODO Explicit exception
-            raise Exception
-        for obj in self.get_objects_gen(bubble_type, constraints, **kwargs):
+    def delete_by_ids(self, bubble_type, ids, **kwargs):
+        for obj in ids:
             self.delete_by_id(bubble_type, obj["_id"], **kwargs)
+
+    def delete_objects(self, bubble_type, constraints: list[Constraint], **kwargs):
+        self.delete_by_ids(
+            bubble_type,
+            self.get_objects_gen(bubble_type, constraints, **kwargs),
+            **kwargs,
+        )
 
     def delete_all(self, bubble_type, **kwargs):
         self.delete_objects(bubble_type, list(), **kwargs)
@@ -115,8 +149,6 @@ class BubbleWrapper:
             headers=headers,
             **kwargs,
         )
-
-        print(resp.text)
 
         return [json.loads(r) for r in resp.text.split("\n")]
 

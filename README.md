@@ -39,9 +39,9 @@ bubble_wrapper = BubbleWrapper(
 From the `BubbleWrapper` instance you can now interact with the data api easily.
 
 ```python
-object_data = bubble_wrapper.get_object_by_id(
+object_data = bubble_wrapper.get(
     "table_name",
-    "bubble_object_id",
+    bubble_id="bubble_object_id",
 )
 ```
 And so on with all the basic interactions with the api: **delete**, **update**, **replace**, ...
@@ -60,9 +60,9 @@ constraints = [
     Field("Created") > datetime(2023, 1, 1),
 ]
 
-data = bubble_wrapper.get_objects(
+data = bubble_wrapper.get(
     "table_name",
-    constraints
+    constraints=constraints
 )
 ```
 
