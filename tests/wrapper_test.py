@@ -55,7 +55,7 @@ def test__bubble_create_object(bubble_wrapper, mocker):
 
     mocker.post(expected_url, json={"id": example_id})
 
-    object_id = bubble_wrapper.create_object(
+    object_id = bubble_wrapper.create(
         example_table,
         example_object,
     )
