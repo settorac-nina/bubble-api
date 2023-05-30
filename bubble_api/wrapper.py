@@ -48,7 +48,6 @@ class BubbleWrapper:
             return response
 
         if nb_retries == 0 or response.status_code // 100 == 4:
-            print(response.text)
             response.raise_for_status()
 
         time.sleep(sleep_time)
@@ -59,6 +58,7 @@ class BubbleWrapper:
         return self.make_request(
             nb_retries=nb_retries - 1,
             sleep_time=sleep_time,
+            exponential_backoff=exponential_backoff,
             **kwargs,
         )
 
@@ -130,8 +130,6 @@ class BubbleWrapper:
             "limit": 100,
         }
 
-        print(params)
-
         resp = self.make_request(method="GET", url=url, params=params, **kwargs)
         json_resp = resp.json()["response"]
 
@@ -150,10 +148,7 @@ class BubbleWrapper:
 
         while True:
             resp = self.make_request(method="GET", url=url, params=params, **kwargs)
-            print(resp)
             json_resp = resp.json()["response"]
-            print(json_resp)
-            print(json_resp["count"])
             yield from json_resp["results"]
 
             params["cursor"] = json_resp["cursor"] + json_resp["count"]

@@ -1,4 +1,5 @@
 from urllib.parse import urlparse, parse_qs
+from time import perf_counter
 import json
 
 import requests
@@ -198,3 +199,64 @@ def test__bubble_retry_correct_number_of_time(bubble_wrapper, mocker):
     assert mocker.last_request.method == "GET"
     assert mocker.last_request.url == expected_url
     assert mocker.last_request.body is None
+
+
+def test__bubble_wait_correct_amount_of_time(bubble_wrapper, mocker):
+    sleep_time = 0.5
+    nb_retries = 5
+
+    example_table = "example_table"
+    example_id = "example_id"
+    expected_url = f"{API_URL_EXAMPLE}/{example_table}/{example_id}"
+    mocker.get(
+        expected_url,
+        text="Server Error",
+        status_code=500,
+    )
+
+    start = perf_counter()
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        bubble_wrapper.get_by_id(
+            example_table, example_id, nb_retries=nb_retries, sleep_time=sleep_time
+        )
+    total_time = perf_counter() - start
+
+    assert "Server Error" in str(exc_info.value)
+
+    assert mocker.call_count == nb_retries + 1
+    assert total_time > sleep_time * nb_retries
+    assert total_time < sleep_time * (nb_retries + 1)
+
+
+def test__bubble_wait_correct_amount_of_time_with_exponential_backoff(
+    bubble_wrapper, mocker
+):
+    sleep_time = 0.1
+    nb_retries = 5
+    expected_wait = sum(sleep_time * 2**k for k in range(nb_retries))
+
+    example_table = "example_table"
+    example_id = "example_id"
+    expected_url = f"{API_URL_EXAMPLE}/{example_table}/{example_id}"
+    mocker.get(
+        expected_url,
+        text="Server Error",
+        status_code=500,
+    )
+
+    start = perf_counter()
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        bubble_wrapper.get_by_id(
+            example_table,
+            example_id,
+            nb_retries=nb_retries,
+            sleep_time=sleep_time,
+            exponential_backoff=True,
+        )
+    total_time = perf_counter() - start
+
+    assert "Server Error" in str(exc_info.value)
+
+    assert mocker.call_count == nb_retries + 1
+    assert total_time > expected_wait
+    assert total_time < expected_wait + sleep_time
