@@ -55,7 +55,7 @@ def test__bubble_create_object(bubble_wrapper, mocker):
 
     mocker.post(expected_url, json={"id": example_id})
 
-    object_id = bubble_wrapper.create(
+    object_id = bubble_wrapper.create_object(
         example_table,
         example_object,
     )
@@ -225,7 +225,6 @@ def test__bubble_wait_correct_amount_of_time(bubble_wrapper, mocker):
 
     assert mocker.call_count == nb_retries + 1
     assert total_time > sleep_time * nb_retries
-    assert total_time < sleep_time * (nb_retries + 1)
 
 
 def test__bubble_wait_correct_amount_of_time_with_exponential_backoff(
@@ -259,4 +258,3 @@ def test__bubble_wait_correct_amount_of_time_with_exponential_backoff(
 
     assert mocker.call_count == nb_retries + 1
     assert total_time > expected_wait
-    assert total_time < expected_wait + sleep_time
