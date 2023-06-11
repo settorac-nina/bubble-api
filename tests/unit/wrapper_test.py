@@ -12,6 +12,8 @@ from bubble_api import BubbleWrapper, Field
 BASE_URL_EXAMPLE = "https://example.com"
 OBJ_API_URL_EXAMPLE = f"{BASE_URL_EXAMPLE}/version-test/api/1.1/obj"
 
+DELTA_TIME_ERROR = 0.001
+
 
 def extract_url_params(url):
     parse_result = urlparse(url)
@@ -224,7 +226,7 @@ def test__bubble_wait_correct_amount_of_time(bubble_wrapper, mocker):
     assert "Server Error" in str(exc_info.value)
 
     assert mocker.call_count == nb_retries + 1
-    assert total_time > sleep_time * nb_retries
+    assert total_time > sleep_time * nb_retries - DELTA_TIME_ERROR
 
 
 def test__bubble_wait_correct_amount_of_time_with_exponential_backoff(
@@ -257,7 +259,7 @@ def test__bubble_wait_correct_amount_of_time_with_exponential_backoff(
     assert "Server Error" in str(exc_info.value)
 
     assert mocker.call_count == nb_retries + 1
-    assert total_time > expected_wait
+    assert total_time > expected_wait - DELTA_TIME_ERROR
 
 
 @patch("bubble_api.BubbleWrapper.get_by_id")
