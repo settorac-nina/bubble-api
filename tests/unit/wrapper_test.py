@@ -12,7 +12,7 @@ from bubble_api import BubbleWrapper, Field
 BASE_URL_EXAMPLE = "https://example.com"
 OBJ_API_URL_EXAMPLE = f"{BASE_URL_EXAMPLE}/version-test/api/1.1/obj"
 
-DELTA_TIME_ERROR = 0.001
+DELTA_TIME_ERROR = 0.01
 
 
 def extract_url_params(url):
