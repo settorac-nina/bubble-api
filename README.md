@@ -3,6 +3,8 @@
     <p><strong>Interactions with Bubble.io API in Python made easy !</strong></p>
     <img alt="Python Badge" src="https://img.shields.io/badge/-Python-D6D6D6?logo=python"/>
     <img alt="PiPY Badge" src="https://img.shields.io/pypi/v/bubble-api"/>
+    <img alt="Ci/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
+    <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
 </div>
 
 ---
