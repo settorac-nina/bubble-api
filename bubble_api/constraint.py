@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Optional
-from numbers import Number
 import datetime
+from numbers import Number
+from typing import Any
 
 
 class Constraint:
-    def __init__(self, key: str, constraint_type: str, value: Optional[Any] = None):
+    def __init__(self, key: str, constraint_type: str, value: Any | None = None):
         self.key = key
         self.constraint_type = constraint_type
         self.value = self.format_constraint_value(value)

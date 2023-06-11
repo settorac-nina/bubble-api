@@ -2,7 +2,6 @@
     <h1><code>Bubble Api</code></h1>
     <p><strong>Interactions with Bubble.io API in Python made easy !</strong></p>
     <img alt="Python Badge" src="https://img.shields.io/badge/-Python-D6D6D6?logo=python"/>
-    <img alt="Version Badge" src="https://img.shields.io/static/v1?label=Version&message=0.4.0&color=9cf"/>
     <img alt="PiPY Badge" src="https://img.shields.io/pypi/v/bubble-api"/>
 </div>
 
@@ -10,7 +9,7 @@
 
 ## Installing
 
-For now, the easiest way to install it is through **pipy** :
+The easiest way to install it is through **pipy** :
 
 ```shell
 pip install bubble-api
@@ -20,7 +19,7 @@ pip install bubble-api
 
 At the moment, there is no documentation for this library.
 You can, however, rely on the integration tests we use to ensure proper integration with Bubble.
-You can find them [here](integration_tests).
+You can find them [here](tests/integration).
 
 ### Creating a BubbleWrapper instance :
 

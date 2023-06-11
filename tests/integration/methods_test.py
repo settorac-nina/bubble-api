@@ -173,7 +173,7 @@ def test__get_objects_with_constraints(bubble_wrapper):
         [Field("rating") > 10, Field("app_version").text_contains(" test")],
     )
 
-    assert set([r["_id"] for r in res]) == {id_11, id_12}
+    assert {r["_id"] for r in res} == {id_11, id_12}
 
 
 @pytest.mark.integration
@@ -194,4 +194,4 @@ def test__create_bulk(bubble_wrapper):
         Field("app_version") == "2.2.7 test",
     )
 
-    assert set([r["_id"] for r in res]) == set(r["id"] for r in bulk_res)
+    assert {r["_id"] for r in res} == {r["id"] for r in bulk_res}
