@@ -7,6 +7,7 @@ from collections.abc import Iterable
 import requests
 
 from .constraint import Constraint
+from .field import Field
 
 API_VERSION = "1.1"
 
@@ -49,6 +50,7 @@ class BubbleWrapper:
             return response
 
         if nb_retries == 0 or response.status_code // 100 == 4:
+            print(response.text)
             response.raise_for_status()
 
         time.sleep(sleep_time)
@@ -67,11 +69,12 @@ class BubbleWrapper:
         self,
         bubble_type,
         bubble_id=None,
+        column_name=None,
         constraints: list[Constraint] = None,
         **kwargs,
     ):
         if bubble_id is not None:
-            return self.get_by_id(bubble_type, bubble_id, **kwargs)
+            return self.get_by_id(bubble_type, bubble_id, column_name, **kwargs)
         return self.get_objects(bubble_type, constraints, **kwargs)
 
     def create(self, bubble_type, field: dict | list[dict] | None = None, **kwargs):
@@ -91,7 +94,13 @@ class BubbleWrapper:
             "If you intend to delete the whole table, please use the delete_all method.",
         )
 
-    def get_by_id(self, bubble_type, bubble_id, **kwargs):
+    def get_by_id(self, bubble_type, bubble_id, column_name=None, **kwargs):
+        if column_name is not None:
+            return self.get_objects(
+                bubble_type,
+                [Field(column_name) == bubble_id],
+            )[0]
+
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
         resp = self.make_request(method="GET", url=url, **kwargs)
@@ -169,15 +178,22 @@ class BubbleWrapper:
 
         return json_resp["count"] + json_resp["remaining"]
 
-    def get_objects_gen(self, bubble_type, constraints=None, **kwargs):
+    def get_objects_gen(
+        self, bubble_type, constraints=None, sort_field=None, descending=False, **kwargs
+    ):
         url = f"{self.base_url}/obj/{bubble_type}"
 
         constraints = self._format_constraints(constraints)
+
+        if isinstance(sort_field, Field):
+            sort_field = sort_field.field_name
 
         params = {
             "constraints": constraints,
             "cursor": 0,
             "limit": 100,
+            "sort_field": sort_field,
+            "descending": descending,
         }
 
         while True:
@@ -192,3 +208,10 @@ class BubbleWrapper:
 
     def get_objects(self, bubble_type, constraints=None, **kwargs):
         return list(self.get_objects_gen(bubble_type, constraints, **kwargs))
+
+    def run_workflow(self, wf_name, params=None, method="POST", **kwargs):
+        url = f"{self.base_url}/wf/{wf_name}"
+
+        resp = self.make_request(method=method, url=url, json=params, **kwargs)
+
+        return resp.json()["response"]
