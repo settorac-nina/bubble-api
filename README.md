@@ -3,8 +3,17 @@
     <p><strong>Interactions with Bubble.io API in Python made easy !</strong></p>
     <img alt="Python Badge" src="https://img.shields.io/badge/-Python-D6D6D6?logo=python"/>
     <img alt="PiPY Badge" src="https://img.shields.io/pypi/v/bubble-api"/>
-    <img alt="Ci/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
+    <img alt="CI/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
     <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
+    <p>
+        <a href="https://cuure.com?utm_source=github&utm_medium=referral">
+            Powered by <strong>Cuure</strong>
+        </a>
+        &nbsp;&nbsp;
+        <a href="https://cuure.com?utm_source=github&utm_medium=referral">
+            <img src="https://github.com/settorac-nina/bubble-api/blob/main/assets/cuure_logo.gif" width="60" height="60" align="center"/>
+        </a>
+    </p>
 </div>
 
 ---
@@ -45,6 +54,7 @@ object_data = bubble_wrapper.get(
     bubble_id="bubble_object_id",
 )
 ```
+
 And so on with all the basic interactions with the api: **delete**, **update**, **replace**, ...
 
 You can also use constraints for getting or deleting objects.
@@ -54,7 +64,7 @@ This is done through a list of `Contraint` object you can declare by operations 
 from bubble_api import BubbleWrapper, Field
 from datetime import datetime
 
-bubble_wrapper = BubbleWrapper( ... )
+bubble_wrapper = BubbleWrapper(...)
 
 constraints = [
     Field("name") == "Bob",
