@@ -6,7 +6,7 @@
     <img alt="CI/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
     <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
     <p>
-        <a href="https://cuure.com?source=github">
+        <a href="https://cuure.com?source=github" style="margin-right: 20px">
             Powered by <strong>Cuure</strong>
         </a>
         <a href="https://cuure.com">
