@@ -1,10 +1,8 @@
-<head>
-    <style>
-        a {
-            color: red; /* Change this to the desired color */
-        }
-    </style>
-</head>
+<style>
+    a {
+        color: red; 
+    }
+</style>
 
 <div align="center">
     <h1><code>Bubble Api</code></h1>
