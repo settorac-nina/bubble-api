@@ -6,9 +6,10 @@
     <img alt="CI/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
     <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
     <p>
-        <a href="https://cuure.com?utm_source=github&utm_medium=referral" style="color: #EF7A1A">
-            Powered by <strong>Cuure</strong>&nbsp;&nbsp;
+        <a href="https://cuure.com?utm_source=github&utm_medium=referral">
+            Powered by <strong>Cuure</strong>
         </a>
+        &nbsp;&nbsp;&nbsp;&nbsp;
         <a href="https://cuure.com?utm_source=github&utm_medium=referral">
             <img src="https://github.com/settorac-nina/bubble-api/blob/readme_improvement/assets/cuure_logo.gif" width="60" height="60" align="center"/>
         </a>
