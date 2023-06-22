@@ -1,9 +1,3 @@
-<style>
-    a {
-        color: red; 
-    }
-</style>
-
 <div align="center">
     <h1><code>Bubble Api</code></h1>
     <p><strong>Interactions with Bubble.io API in Python made easy !</strong></p>
@@ -11,8 +5,8 @@
     <img alt="PiPY Badge" src="https://img.shields.io/pypi/v/bubble-api"/>
     <img alt="CI/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
     <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
-    <p>
-        <a href="https://cuure.com?utm_source=github&utm_medium=referral" style="color:red; text-decoration: underline;text-decoration-style: dotted;">
+    <p style="color:red">
+        <a href="https://cuure.com?utm_source=github&utm_medium=referral" >
             Powered by <strong>Cuure</strong>
         </a>
         &nbsp;&nbsp;
