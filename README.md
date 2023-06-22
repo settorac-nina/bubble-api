@@ -1,3 +1,11 @@
+<head>
+    <style>
+        a {
+            color: red; /* Change this to the desired color */
+        }
+    </style>
+</head>
+
 <div align="center">
     <h1><code>Bubble Api</code></h1>
     <p><strong>Interactions with Bubble.io API in Python made easy !</strong></p>
