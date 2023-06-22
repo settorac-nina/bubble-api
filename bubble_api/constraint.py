@@ -12,7 +12,7 @@ class Constraint:
         self.value = self.format_constraint_value(value)
 
     @staticmethod
-    def format_constraint_value(value: Any) -> Any:
+    def format_constraint_value(value: Any) -> str | None:
         if value is None:
             return
         if isinstance(value, str):
