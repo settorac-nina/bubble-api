@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Iterable
+from itertools import islice
 
 import requests
 
@@ -37,13 +38,17 @@ class BubbleWrapper:
 
     @staticmethod
     def _format_constraints(
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
     ) -> str:
         if constraints is None:
             constraints = list()
         if isinstance(constraints, Constraint):
             constraints = [constraints]
         return json.dumps([constraint.to_dict() for constraint in constraints])
+
+    @staticmethod
+    def format_bubble_type(bubble_type: str):
+        return bubble_type.lower().replace(" ", "")
 
     def make_request(
         self,
@@ -79,27 +84,30 @@ class BubbleWrapper:
     def get(
         self,
         bubble_type: str,
-        bubble_id: str = None,
-        column_name: str = None,
-        constraints: list[Constraint] = None,
+        bubble_id: str | None = None,
+        column_name: str | None = None,
+        constraints: list[Constraint] | None = None,
         **kwargs,
     ):
+        bubble_type = self.format_bubble_type(bubble_type)
         if bubble_id is not None:
             return self.get_by_id(bubble_type, bubble_id, column_name, **kwargs)
         return self.get_objects(bubble_type, constraints, **kwargs)
 
-    def create(self, bubble_type: str, field: dict | list[dict] = None, **kwargs):
-        if isinstance(field, list):
-            return self.create_bulk(bubble_type, fields=field, **kwargs)
-        return self.create_object(bubble_type, field, **kwargs)
+    def create(self, bubble_type: str, fields: dict | list[dict] = None, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
+        if isinstance(fields, list):
+            return self.create_bulk(bubble_type, fields=fields, **kwargs)
+        return self.create_object(bubble_type, fields, **kwargs)
 
     def delete(
         self,
         bubble_type: str,
-        bubble_id: str | Iterable[str] = None,
-        constraints: Constraint | Iterable[Constraint] = None,
+        bubble_id: str | Iterable[str] | None = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
         **kwargs,
     ):
+        bubble_type = self.format_bubble_type(bubble_type)
         if bubble_id is not None and constraints is not None:
             raise TypeError("You can't specify both bubble_id and constraints.")
         if isinstance(bubble_id, str):
@@ -113,14 +121,14 @@ class BubbleWrapper:
             "If you intend to delete the whole table, please use the delete_all method.",
         )
 
-    def get_by_id(
-        self, bubble_type: str, bubble_id: str, column_name: str = None, **kwargs
-    ):
-        if column_name is not None and column_name != "_id":
-            return self.get_objects(
+    def get_by_id(self, bubble_type, bubble_id, column_name=None, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
+        if column_name is not None:
+            objs = self.get_objects(
                 bubble_type,
                 [Field(column_name) == bubble_id],
-            )[0]
+            )
+            return objs[0] if len(objs) > 0 else None
 
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
@@ -128,7 +136,8 @@ class BubbleWrapper:
 
         return resp.json()["response"]
 
-    def create_object(self, bubble_type: str, fields: dict = None, **kwargs):
+    def create_object(self, bubble_type: str, fields: dict | None = None, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}"
 
         resp = self.make_request(method="POST", url=url, json=fields, **kwargs)
@@ -136,30 +145,35 @@ class BubbleWrapper:
         return resp.json()["id"]
 
     def update_object(self, bubble_type: str, bubble_id: str, fields: dict, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
         self.make_request(method="PATCH", url=url, json=fields, **kwargs)
 
     def replace_object(self, bubble_type: str, bubble_id: str, fields: dict, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
         self.make_request(method="PUT", url=url, json=fields, **kwargs)
 
     def delete_by_id(self, bubble_type: str, bubble_id: str, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
         self.make_request(method="DELETE", url=url, **kwargs)
 
     def delete_by_ids(self, bubble_type: str, ids: Iterable[str], **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
         for _id in ids:
             self.delete_by_id(bubble_type, _id, **kwargs)
 
     def delete_objects(
         self,
         bubble_type: str,
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
         **kwargs,
     ):
+        bubble_type = self.format_bubble_type(bubble_type)
         self.delete_by_ids(
             bubble_type,
             (
@@ -170,9 +184,11 @@ class BubbleWrapper:
         )
 
     def delete_all(self, bubble_type, **kwargs):
+        bubble_type = self.format_bubble_type(bubble_type)
         self.delete_objects(bubble_type, list(), **kwargs)
 
     def create_bulk(self, bubble_type: str, fields: list[dict], **kwargs) -> list:
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}/bulk"
         headers = {
             **self._get_headers(),
@@ -192,9 +208,10 @@ class BubbleWrapper:
     def count_objects(
         self,
         bubble_type: str,
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
         **kwargs,
     ):
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}"
         constraints = self._format_constraints(constraints)
 
@@ -212,11 +229,13 @@ class BubbleWrapper:
     def get_objects_gen(
         self,
         bubble_type: str,
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
         sort_field: str = None,
         descending: bool = False,
+        limit: int = 100,
         **kwargs,
     ):
+        bubble_type = self.format_bubble_type(bubble_type)
         url = f"{self.base_url}/obj/{bubble_type}"
 
         constraints = self._format_constraints(constraints)
@@ -227,7 +246,7 @@ class BubbleWrapper:
         params = {
             "constraints": constraints,
             "cursor": 0,
-            "limit": 100,
+            "limit": limit,
             "sort_field": sort_field,
             "descending": descending,
         }
@@ -245,12 +264,20 @@ class BubbleWrapper:
     def get_objects(
         self,
         bubble_type: str,
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
+        max_objects: int | None = None,
         **kwargs,
     ):
-        return list(self.get_objects_gen(bubble_type, constraints, **kwargs))
+        bubble_type = self.format_bubble_type(bubble_type)
+        return list(
+            islice(
+                self.get_objects_gen(bubble_type, constraints, **kwargs), max_objects
+            )
+        )
 
-    def run_workflow(self, wf_name, params=None, method="POST", **kwargs):
+    def run_workflow(
+        self, wf_name: str, params: dict | None = None, method: str = "POST", **kwargs
+    ):
         url = f"{self.base_url}/wf/{wf_name}"
 
         resp = self.make_request(method=method, url=url, json=params, **kwargs)

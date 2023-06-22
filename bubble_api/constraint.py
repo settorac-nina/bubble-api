@@ -15,7 +15,7 @@ class Constraint:
     @staticmethod
     def format_constraint_value(value: Any) -> str | list[str] | None:
         if value is None:
-            return
+            return None
         if isinstance(value, str):
             return value
         if isinstance(value, Number):

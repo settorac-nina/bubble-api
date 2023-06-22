@@ -3,7 +3,7 @@ from .constraint import Constraint
 
 class Field:
     def __init__(self, field_name: str):
-        self.field_name = self.field_name = self.format_field_name(field_name)
+        self.field_name = self.format_field_name(field_name)
 
     @staticmethod
     def format_field_name(field_name: str):
@@ -19,7 +19,7 @@ class Field:
     def not_equals(self, other):
         return Constraint(
             self.field_name,
-            "not equals",
+            "not equal",
             other,
         )
 
@@ -106,6 +106,6 @@ class Field:
     def geographic_search(self, value):
         return Constraint(
             self.field_name,
-            "geographic search",
+            "geographic_search",
             value,
         )
