@@ -229,7 +229,7 @@ class BubbleWrapper:
     def get_objects_gen(
         self,
         bubble_type: str,
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
         sort_field: str = None,
         descending: bool = False,
         limit: int = 100,
@@ -264,7 +264,7 @@ class BubbleWrapper:
     def get_objects(
         self,
         bubble_type: str,
-        constraints: Constraint | Iterable[Constraint] = None,
+        constraints: Constraint | Iterable[Constraint] | None = None,
         max_objects: int | None = None,
         **kwargs,
     ):
