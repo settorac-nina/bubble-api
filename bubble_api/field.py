@@ -2,7 +2,7 @@ from .constraint import Constraint
 
 
 class Field:
-    def __init__(self, field_name):
+    def __init__(self, field_name: str):
         self.field_name = self.field_name = self.format_field_name(field_name)
 
     @staticmethod
