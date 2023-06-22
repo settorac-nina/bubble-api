@@ -1,0 +1,4 @@
+setuptools>=61
+wheel
+twine
+pre-commit

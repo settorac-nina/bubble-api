@@ -1,148 +1,87 @@
-# bubble-api
-Interactions with Bubble.io in Python made easy
+<div align="center">
+    <h1><code>Bubble Api</code></h1>
+    <p><strong>Interactions with Bubble.io API in Python made easy !</strong></p>
+    <img alt="Python Badge" src="https://img.shields.io/badge/-Python-D6D6D6?logo=python"/>
+    <img alt="PiPY Badge" src="https://img.shields.io/pypi/v/bubble-api"/>
+    <img alt="Ci/CD Badge" src="https://github.com/settorac-nina/bubble-api/actions/workflows/cicd.yaml/badge.svg?branch=main)"/>
+    <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
+</div>
 
-If you have any recommendations or if you want to participate in the project, do not hesitate to contact me at 
-settorac.nina@gmail.com
+---
 
-I have not yet written any documentation due to lack of time. 
-However, I tried to make the code as simple and readable as possible.
+## Installing
 
-Examples
-````
-from bubble_api.bubble import Bubble, Constraint
+The easiest way to install it is through **pipy** :
 
+```shell
+pip install bubble-api
+```
 
-# Instantiate Bubble instance
-bubble = Bubble(
-    api_key="API_KEY",  # Put your API key here. You can also use a user token
-    base_url="https://DOMAIN.com",  # Do not include app version and api/1.1 here
-    bubble_version="test",  # Request to development branch
-    n_retries=4,
-    # Wait 0 second after first fail, 2 after second one, 4 after third on, 8 after forth, ...
-    base_wait_time=2,
-    exponential_backoff=True
+## How to use it
+
+At the moment, there is no documentation for this library.
+You can, however, rely on the integration tests we use to ensure proper integration with Bubble.
+You can find them [here](tests/integration).
+
+### Creating a BubbleWrapper instance :
+
+```python
+from bubble_api import BubbleWrapper
+
+bubble_wrapper = BubbleWrapper(
+    base_url="https://cuure.com",
+    api_token="YOUR_API_TOKEN",
+    bubble_version="live"
 )
+```
 
-# Make a simple GET request
-get_data_resp = bubble.make_request(
-    bubble_type="user",
-    limit=2,
-    cursor=15,
-    columns_selected=["first_name", "last_name", "_id"]  # If not set, return all columns
+### Interact with bubble data :
+
+From the `BubbleWrapper` instance you can now interact with the data api easily.
+
+```python
+object_data = bubble_wrapper.get(
+    "table_name",
+    bubble_id="bubble_object_id",
 )
+```
+And so on with all the basic interactions with the api: **delete**, **update**, **replace**, ...
 
-users = get_data_resp.results
-remaining = get_data_resp.remaining
-count = get_data_resp.count
+You can also use constraints for getting or deleting objects.
+This is done through a list of `Contraint` object you can declare by operations with the `Field` class.
 
-# Make a request with constraints and pagination automatically handled and data returned in list
-full_data_resp = bubble.make_full_request(
-    bubble_type="user",
-    sort_field="first_name",
-    descending=False,
-    columns_selected=["first_name", "last_name", "_id"],  # If not set, return all columns
-    constraints=[
-        Constraint(
-            key="last_name",
-            constraint_type="equals",
-            value="Dupont"
-        )
-    ]
+```python
+from bubble_api import BubbleWrapper, Field
+from datetime import datetime
+
+bubble_wrapper = BubbleWrapper( ... )
+
+constraints = [
+    Field("name") == "Bob",
+    Field("Created") > datetime(2023, 1, 1),
+]
+
+data = bubble_wrapper.get(
+    "table_name",
+    constraints=constraints
 )
+```
 
-dupont_users = full_data_resp.results
+All the fields names and constraints values formatting is handle by the library.
 
-# Make a request with constraints and pagination automatically handled and data returned saved in a file
-full_data_resp_2 = bubble.make_full_request(
-    bubble_type="user",
-    sort_field="first_name",
-    descending=False,
-    columns_selected=["first_name", "last_name", "_id"],  # If not set, return all columns
-    constraints=[
-        Constraint(
-            key="last_name",
-            constraint_type="equals",
-            value="Dupont"
-        )
-    ],
-    path_to_file="dupont_users.csv"
-)
+## Incoming features
 
-path_to_file = full_data_resp_2.path_to_file
+- [ ] Big request optimization using remaining approximation (exclude_remaining)
+- [ ] Multithreading
+- [ ] Default fields (Modified Date, unique id, Created Date, ...)
+- [ ] Lifetime object management (update, refresh, replace)
+- [ ] Documentation
 
-# Make a request with constraints and pagination automatically handled and data returned saved in a file and use
-# threads to go faster (setting threads to 2 doesn't mean that it will be twice as fast)
-full_data_resp_3 = bubble.make_full_request(
-    bubble_type="user",
-    sort_field="first_name",
-    descending=False,
-    columns_selected=["first_name", "last_name", "_id"],  # If not set, return all columns
-    constraints=[
-        Constraint(
-            key="last_name",
-            constraint_type="equals",
-            value="Dupont"
-        )
-    ],
-    path_to_file="dupont_users_with_threads.csv",
-    n_threads=2
-)
+## Authors
 
-path_to_file_with_threads = full_data_resp_3.path_to_file
+* **Dylan Nina** - *Initial work* - [settorac-nina](https://github.com/settorac-nina)
+* **Mathis Bourdin** - *Contributor* - [mathisbrdn](https://github.com/mathisbrdn)
 
-# Count number of items
-n_items = bubble.count_items(
-    bubble_type="user"
-)
+## License
 
-# Get object using its unique id
-selected_user = bubble.get_object_by_id(
-    bubble_type="user",
-    unique_id="1655199935778x975916702499961900",
-    columns_selected=["first_name", "last_name", "_id"]  # If not set, return all columns
-)
-
-# You can also get an object using another column
-# You should only use columns with unique constraint
-selected_order = bubble.get_object_by_id(
-    bubble_type="order",
-    column_id="ref",
-    unique_id="100000",
-    columns_selected=["ref", "_id"]  # If not set, return all columns
-)
-
-# You can decide to get a failure in case the result is not unique or if nothing is found
-selected_dupont = bubble.get_object_by_id(
-    bubble_type="user",
-    column_id="last_name",
-    unique_id="Dupont",
-    fail_if_multiple_results=True,
-    fail_if_not_found=True
-)
-
-# Create an object
-order_unique_id = bubble.create_object(
-    bubble_type="order",
-    params={
-        "ref": "100001"
-    }
-)
-
-# Update an object
-user_unique_id = bubble.update_object(
-    bubble_type="user",
-    params={
-        "first_name": "Pierre"
-    },
-    unique_id="1655199935778x975916702499961900"
-)
-
-# Trigger WF
-resp = bubble.make_wf_request(
-    wf_name="my_wf",
-    params={
-        "customer": "123x321"
-    }
-)
-
-````
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
