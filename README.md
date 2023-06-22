@@ -7,7 +7,7 @@
     <img src="https://img.shields.io/badge/Made%20With-Love-ef7d16.svg"/>
     <p>
         Powered by <strong href="https://cuure.com">Cuure</strong>
-        <img src="assets/Cuure_logo.gif" width="60" height="60" align="center" href="https://cuure.com" style="margin-left: 20px"/>
+        <img src="https://github.com/settorac-nina/bubble-api/blob/readme_improvement/assets/cuure_logo.gif" width="60" height="60" align="center" href="https://cuure.com" style="margin-left: 20px"/>
     </p>
 </div>
 
