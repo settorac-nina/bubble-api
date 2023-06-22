@@ -140,8 +140,8 @@ def test__bubble_count_objects(bubble_wrapper, mocker):
         json={
             "response": {
                 "data": {},
-                "count": 100,
-                "remaining": 50,
+                "count": 1,
+                "remaining": 149,
             }
         },
     )
@@ -157,7 +157,7 @@ def test__bubble_count_objects(bubble_wrapper, mocker):
     assert [con.to_dict() for con in constraints] == json.loads(
         last_request_params["constraints"][0]
     )
-    assert json.loads(last_request_params["limit"][0]) == 100
+    assert json.loads(last_request_params["limit"][0]) == 1
     assert json.loads(last_request_params["cursor"][0]) == 0
     assert mocker.last_request.body is None
 

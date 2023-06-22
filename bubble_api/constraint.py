@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Iterable
 from numbers import Number
 from typing import Any
 
@@ -12,7 +13,7 @@ class Constraint:
         self.value = self.format_constraint_value(value)
 
     @staticmethod
-    def format_constraint_value(value: Any) -> Any:
+    def format_constraint_value(value: Any) -> str | list[str] | None:
         if value is None:
             return
         if isinstance(value, str):
@@ -23,6 +24,9 @@ class Constraint:
             return value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         if isinstance(value, datetime.date):
             return value.strftime("%Y-%m-%d")
+        if isinstance(value, Iterable):
+            return [Constraint.format_constraint_value(v) for v in value]
+        return value
 
     def to_dict(self) -> dict:
         res = {
