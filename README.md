@@ -73,6 +73,8 @@ All the fields names and constraints values formatting is handle by the library.
 
 - [ ] Big request optimization using remaining approximation (exclude_remaining)
 - [ ] Multithreading
+- [ ] Default fields (Modified Date, unique id, Created Date, ...)
+- [ ] Lifetime object management (update, refresh, replace)
 - [ ] Documentation
 
 ## Authors
