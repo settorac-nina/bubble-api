@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from bubble_api.constraint import Constraint
 from bubble_api.field import Field
 
@@ -25,7 +27,7 @@ def test__field_to_constraint__not_equals():
     assert isinstance(res, Constraint)
     assert res.to_dict() == {
         "key": "key",
-        "constraint_type": "not equals",
+        "constraint_type": "not equal",
         "value": "value",
     }
 
@@ -117,24 +119,28 @@ def test__field_to_constraint__less_than_reversed():
 
 
 def test__field_to_constraint__is_in():
-    res = Field("key").is_in("list")
+    res = Field("key").is_in(
+        [datetime(2023, 7, 20).date(), datetime(2023, 7, 21).date()]
+    )
 
     assert isinstance(res, Constraint)
     assert res.to_dict() == {
         "key": "key",
         "constraint_type": "in",
-        "value": "list",
+        "value": ["2023-07-20", "2023-07-21"],
     }
 
 
 def test__field_to_constraint__is_not_in():
-    res = Field("key").is_not_in("list")
+    res = Field("key").is_not_in(
+        [datetime(2023, 7, 20).date(), datetime(2023, 7, 21).date()]
+    )
 
     assert isinstance(res, Constraint)
     assert res.to_dict() == {
         "key": "key",
         "constraint_type": "not in",
-        "value": "list",
+        "value": ["2023-07-20", "2023-07-21"],
     }
 
 
@@ -166,6 +172,6 @@ def test__field_to_constraint__geographic_search():
     assert isinstance(res, Constraint)
     assert res.to_dict() == {
         "key": "key",
-        "constraint_type": "geographic search",
+        "constraint_type": "geographic_search",
         "value": "value",
     }

@@ -19,7 +19,7 @@ class Field:
     def not_equals(self, other):
         return Constraint(
             self.field_name,
-            "not equals",
+            "not equal",
             other,
         )
 
@@ -106,6 +106,6 @@ class Field:
     def geographic_search(self, value):
         return Constraint(
             self.field_name,
-            "geographic search",
+            "geographic_search",
             value,
         )

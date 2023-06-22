@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Iterable
+from itertools import islice
 
 import requests
 
@@ -96,10 +97,11 @@ class BubbleWrapper:
 
     def get_by_id(self, bubble_type, bubble_id, column_name=None, **kwargs):
         if column_name is not None:
-            return self.get_objects(
+            objs = self.get_objects(
                 bubble_type,
                 [Field(column_name) == bubble_id],
-            )[0]
+            )
+            return objs[0] if len(objs) > 0 else None
 
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
@@ -179,7 +181,13 @@ class BubbleWrapper:
         return json_resp["count"] + json_resp["remaining"]
 
     def get_objects_gen(
-        self, bubble_type, constraints=None, sort_field=None, descending=False, **kwargs
+        self,
+        bubble_type,
+        constraints=None,
+        sort_field=None,
+        descending=False,
+        limit=100,
+        **kwargs,
     ):
         url = f"{self.base_url}/obj/{bubble_type}"
 
@@ -191,7 +199,7 @@ class BubbleWrapper:
         params = {
             "constraints": constraints,
             "cursor": 0,
-            "limit": 100,
+            "limit": limit,
             "sort_field": sort_field,
             "descending": descending,
         }
@@ -206,8 +214,12 @@ class BubbleWrapper:
             if json_resp["remaining"] == 0:
                 break
 
-    def get_objects(self, bubble_type, constraints=None, **kwargs):
-        return list(self.get_objects_gen(bubble_type, constraints, **kwargs))
+    def get_objects(self, bubble_type, constraints=None, max_objects=None, **kwargs):
+        return list(
+            islice(
+                self.get_objects_gen(bubble_type, constraints, **kwargs), max_objects
+            )
+        )
 
     def run_workflow(self, wf_name, params=None, method="POST", **kwargs):
         url = f"{self.base_url}/wf/{wf_name}"

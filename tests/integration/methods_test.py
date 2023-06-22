@@ -16,8 +16,8 @@ def bubble_wrapper():
 
 
 def clean_test_data(bubble_wrapper):
-    bubble_wrapper.delete_objects(
-        "appfeedback", Field("app_version").text_contains("test")
+    bubble_wrapper.delete(
+        "appfeedback", constraints=Field("app_version").text_contains("test")
     )
 
 
@@ -61,10 +61,12 @@ def test__delete_object_by_id(bubble_wrapper):
         {"rating": 5, "app_version": "2.2.2 test"},
     )
 
-    bubble_wrapper.get_by_id(
+    obj = bubble_wrapper.get_by_id(
         "appfeedback",
         object_id,
     )
+
+    assert obj["_id"] == object_id
 
     bubble_wrapper.delete_by_id(
         "appfeedback",
@@ -124,6 +126,7 @@ def test__replace_object(bubble_wrapper):
     assert isinstance(feedback, dict)
     assert "rating" not in feedback
     assert feedback["app_version"] == "2.3.4 test"
+    assert feedback["_id"] == object_id
 
 
 @pytest.mark.integration
@@ -194,4 +197,6 @@ def test__create_bulk(bubble_wrapper):
         Field("app_version") == "2.2.7 test",
     )
 
+    assert len(res) == 3
     assert {r["_id"] for r in res} == {r["id"] for r in bulk_res}
+    assert {r["rating"] for r in res} == {7, 8, 9}
