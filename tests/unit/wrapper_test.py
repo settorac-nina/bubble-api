@@ -39,7 +39,7 @@ def test__bubble_get_by_id(bubble_wrapper, mocker):
     example_table = "example_table"
     example_id = "example_id"
     expected_url = f"{OBJ_API_URL_EXAMPLE}/{example_table}/{example_id}"
-    mocker.get(expected_url, json={"response": {"data": "test"}})
+    mocker.get(expected_url, json={"response": {"_id": "123x123"}})
 
     bubble_wrapper.get_by_id(example_table, example_id)
 
@@ -139,9 +139,10 @@ def test__bubble_count_objects(bubble_wrapper, mocker):
         expected_url,
         json={
             "response": {
-                "data": {},
+                "results": [{"_id": "123x123"}],
                 "count": 1,
                 "remaining": 149,
+                "cursor": 1
             }
         },
     )
@@ -170,7 +171,7 @@ def test__bubble_retry_server_error(bubble_wrapper, mocker):
         expected_url,
         [
             {"text": "Server Error", "status_code": 500},
-            {"json": {"response": {"data": "test"}, "status_code": 200}},
+            {"json": {"response": {"_id": "123x123"}}, "status_code": 200},
         ],
     )
 
@@ -342,3 +343,25 @@ def test__raise_warning__when__only_type_is_given(bubble_wrapper):
 
     with pytest.raises(Warning):
         bubble_wrapper.delete(bubble_type)
+
+
+def test__should__raise_error__when__no_object_found_with_column_specified(bubble_wrapper, mocker):
+    example_table = "example_table"
+    example_id = "example_id"
+    example_column = "example_column"
+    expected_url = f"{OBJ_API_URL_EXAMPLE}/{example_table}"
+
+    mocker.get(
+        expected_url,
+        json={
+            "response": {
+                "results": [],
+                "count": 0,
+                "remaining": 0,
+                "cursor": 0
+            }
+        },
+    )
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        bubble_wrapper.get_by_id(example_table, example_id, column_name=example_column)
