@@ -345,7 +345,7 @@ def test__raise_warning__when__only_type_is_given(bubble_client):
         bubble_client.delete(bubble_type)
 
 
-def test__should__raise_error__when__no_object_found_with_column_specified(bubble_wrapper, mocker):
+def test__should__raise_error__when__no_object_found_with_column_specified(bubble_client, mocker):
     example_table = "example_table"
     example_id = "example_id"
     example_column = "example_column"
@@ -364,4 +364,4 @@ def test__should__raise_error__when__no_object_found_with_column_specified(bubbl
     )
 
     with pytest.raises(requests.exceptions.HTTPError) as exc_info:
-        bubble_wrapper.get_by_id(example_table, example_id, column_name=example_column)
+        bubble_client.get_by_id(example_table, example_id, column_name=example_column)
