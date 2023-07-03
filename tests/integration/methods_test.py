@@ -3,34 +3,34 @@ import os
 import pytest
 import requests
 
-from bubble_api import BubbleWrapper, Field
+from bubble_api import BubbleClient, Field
 
 
 @pytest.fixture(scope="session")
-def bubble_wrapper():
-    return BubbleWrapper(
+def bubble_client():
+    return BubbleClient(
         base_url="https://cuure.com",
         api_token=os.environ["BUBBLE_API_KEY"],
         bubble_version="test",
     )
 
 
-def clean_test_data(bubble_wrapper):
-    bubble_wrapper.delete(
+def clean_test_data(bubble_client):
+    bubble_client.delete(
         "appfeedback", constraints=Field("app_version").text_contains("test")
     )
 
 
 @pytest.fixture(scope="session", autouse=True)
-def cleaning_feedback_data(bubble_wrapper):
-    clean_test_data(bubble_wrapper)
+def cleaning_feedback_data(bubble_client):
+    clean_test_data(bubble_client)
     yield
-    clean_test_data(bubble_wrapper)
+    clean_test_data(bubble_client)
 
 
 @pytest.mark.integration
-def test__create_object(bubble_wrapper):
-    object_id = bubble_wrapper.create(
+def test__create_object(bubble_client):
+    object_id = bubble_client.create(
         "appfeedback",
         {"rating": 5, "app_version": "2.2.0 test"},
     )
@@ -39,13 +39,13 @@ def test__create_object(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__get_object_by_id(bubble_wrapper):
-    object_id = bubble_wrapper.create(
+def test__get_object_by_id(bubble_client):
+    object_id = bubble_client.create(
         "appfeedback",
         {"rating": 5, "app_version": "2.2.1 test"},
     )
 
-    feedback = bubble_wrapper.get_by_id(
+    feedback = bubble_client.get_by_id(
         "appfeedback",
         object_id,
     )
@@ -55,26 +55,26 @@ def test__get_object_by_id(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__delete_object_by_id(bubble_wrapper):
-    object_id = bubble_wrapper.create(
+def test__delete_object_by_id(bubble_client):
+    object_id = bubble_client.create(
         "appfeedback",
         {"rating": 5, "app_version": "2.2.2 test"},
     )
 
-    obj = bubble_wrapper.get_by_id(
+    obj = bubble_client.get_by_id(
         "appfeedback",
         object_id,
     )
 
     assert obj["_id"] == object_id
 
-    bubble_wrapper.delete_by_id(
+    bubble_client.delete_by_id(
         "appfeedback",
         object_id,
     )
 
     with pytest.raises(requests.exceptions.HTTPError) as exc_info:
-        bubble_wrapper.get_by_id(
+        bubble_client.get_by_id(
             "appfeedback",
             object_id,
         )
@@ -83,19 +83,19 @@ def test__delete_object_by_id(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__update_object(bubble_wrapper):
-    object_id = bubble_wrapper.create(
+def test__update_object(bubble_client):
+    object_id = bubble_client.create(
         "appfeedback",
         {"rating": 5, "app_version": "2.2.3 test"},
     )
 
-    bubble_wrapper.update_object(
+    bubble_client.update_object(
         "appfeedback",
         object_id,
         {"rating": 4, "app_version": "2.2.3 test"},
     )
 
-    feedback = bubble_wrapper.get_by_id(
+    feedback = bubble_client.get_by_id(
         "appfeedback",
         object_id,
     )
@@ -106,19 +106,19 @@ def test__update_object(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__replace_object(bubble_wrapper):
-    object_id = bubble_wrapper.create(
+def test__replace_object(bubble_client):
+    object_id = bubble_client.create(
         "appfeedback",
         {"rating": 5, "app_version": "2.2.4 test"},
     )
 
-    bubble_wrapper.replace_object(
+    bubble_client.replace_object(
         "appfeedback",
         object_id,
         {"app_version": "2.3.4 test"},
     )
 
-    feedback = bubble_wrapper.get_by_id(
+    feedback = bubble_client.get_by_id(
         "appfeedback",
         object_id,
     )
@@ -130,23 +130,23 @@ def test__replace_object(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__count_objects_with_constraints(bubble_wrapper):
-    bubble_wrapper.create(
+def test__count_objects_with_constraints(bubble_client):
+    bubble_client.create(
         "appfeedback",
         {"rating": 5, "app_version": "2.2.5 test"},
     )
 
-    bubble_wrapper.create(
+    bubble_client.create(
         "appfeedback",
         {"rating": 4, "app_version": "2.2.5 test"},
     )
 
-    bubble_wrapper.create(
+    bubble_client.create(
         "appfeedback",
         {"rating": 3, "app_version": "2.2.5 test"},
     )
 
-    res = bubble_wrapper.count_objects(
+    res = bubble_client.count_objects(
         "appfeedback",
         Field("app_version") == "2.2.5 test",
     )
@@ -155,23 +155,23 @@ def test__count_objects_with_constraints(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__get_objects_with_constraints(bubble_wrapper):
-    id_12 = bubble_wrapper.create(
+def test__get_objects_with_constraints(bubble_client):
+    id_12 = bubble_client.create(
         "appfeedback",
         {"rating": 12, "app_version": "2.2.6 test"},
     )
 
-    id_11 = bubble_wrapper.create(
+    id_11 = bubble_client.create(
         "appfeedback",
         {"rating": 11, "app_version": "2.2.6 test"},
     )
 
-    bubble_wrapper.create(
+    bubble_client.create(
         "appfeedback",
         {"rating": 10, "app_version": "2.2.6 test"},
     )
 
-    res = bubble_wrapper.get_objects(
+    res = bubble_client.get_objects(
         "appfeedback",
         [Field("rating") > 10, Field("app_version").text_contains(" test")],
     )
@@ -180,8 +180,8 @@ def test__get_objects_with_constraints(bubble_wrapper):
 
 
 @pytest.mark.integration
-def test__create_bulk(bubble_wrapper):
-    bulk_res = bubble_wrapper.create_bulk(
+def test__create_bulk(bubble_client):
+    bulk_res = bubble_client.create_bulk(
         "appfeedback",
         [
             {"rating": 9, "app_version": "2.2.7 test"},
@@ -192,7 +192,7 @@ def test__create_bulk(bubble_wrapper):
 
     assert all(r["status"] == "success" for r in bulk_res)
 
-    res = bubble_wrapper.get_objects(
+    res = bubble_client.get_objects(
         "appfeedback",
         Field("app_version") == "2.2.7 test",
     )
