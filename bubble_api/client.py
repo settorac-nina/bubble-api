@@ -128,7 +128,13 @@ class BubbleClient:
                 bubble_type,
                 [Field(column_name) == bubble_id],
             )
-            return objs[0] if len(objs) > 0 else None
+
+            if not objs:
+                raise requests.exceptions.HTTPError(
+                    f"Could not find object with id {bubble_id} in column {column_name}."
+                )
+
+            return objs[0]
 
         url = f"{self.base_url}/obj/{bubble_type}/{bubble_id}"
 
