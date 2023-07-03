@@ -13,7 +13,7 @@ from .field import Field
 API_VERSION = "1.1"
 
 
-class BubbleWrapper:
+class BubbleClient:
     def __init__(
         self,
         base_url: str,

@@ -32,12 +32,12 @@ At the moment, there is no documentation for this library.
 You can, however, rely on the integration tests we use to ensure proper integration with Bubble.
 You can find them [here](tests/integration).
 
-### Creating a BubbleWrapper instance :
+### Creating a BubbleClient instance :
 
 ```python
-from bubble_api import BubbleWrapper
+from bubble_api import BubbleClient
 
-bubble_wrapper = BubbleWrapper(
+bubble_client = BubbleClient(
     base_url="https://cuure.com",
     api_token="YOUR_API_TOKEN",
     bubble_version="live"
@@ -46,10 +46,10 @@ bubble_wrapper = BubbleWrapper(
 
 ### Interact with bubble data :
 
-From the `BubbleWrapper` instance you can now interact with the data api easily.
+From the `BubbleClient` instance you can now interact with the data api easily.
 
 ```python
-object_data = bubble_wrapper.get(
+object_data = bubble_client.get(
     "table_name",
     bubble_id="bubble_object_id",
 )
@@ -61,17 +61,17 @@ You can also use constraints for getting or deleting objects.
 This is done through a list of `Contraint` object you can declare by operations with the `Field` class.
 
 ```python
-from bubble_api import BubbleWrapper, Field
+from bubble_api import BubbleClient, Field
 from datetime import datetime
 
-bubble_wrapper = BubbleWrapper(...)
+bubble_client = BubbleClient( ... )
 
 constraints = [
     Field("name") == "Bob",
     Field("Created") > datetime(2023, 1, 1),
 ]
 
-data = bubble_wrapper.get(
+data = bubble_client.get(
     "table_name",
     constraints=constraints
 )
