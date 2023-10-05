@@ -56,7 +56,7 @@ class BubbleClient:
         exponential_backoff: bool = False,
         **kwargs,
     ) -> httpx.Response:
-        async with httpx.AsyncClient as client:
+        async with httpx.AsyncClient() as client:
             if kwargs.get("headers") is None:
                 kwargs["headers"] = self._get_headers()
 
