@@ -1,4 +1,4 @@
-from .constraint import Constraint
+from bubble_api.constraint import Constraint
 
 
 class Field:

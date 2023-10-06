@@ -3,29 +3,7 @@ import os
 import pytest
 import requests
 
-from bubble_api import BubbleClient, Field
-
-
-@pytest.fixture(scope="session")
-def bubble_client():
-    return BubbleClient(
-        base_url="https://cuure.com",
-        api_token=os.environ["BUBBLE_API_KEY"],
-        bubble_version="test",
-    )
-
-
-def clean_test_data(bubble_client):
-    bubble_client.delete(
-        "appfeedback", constraints=Field("app_version").text_contains("test")
-    )
-
-
-@pytest.fixture(scope="session", autouse=True)
-def cleaning_feedback_data(bubble_client):
-    clean_test_data(bubble_client)
-    yield
-    clean_test_data(bubble_client)
+from bubble_api import Field
 
 
 @pytest.mark.integration

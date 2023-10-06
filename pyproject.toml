@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bubble_api"
-version = "0.4.1"
+version = "0.5.0"
 authors = [
     { name="Dylan NINA", email="settorac.nina@gmail.com" },
     { name="Mathis Bourdin", email="mathisbrdn@gmail.com" },
