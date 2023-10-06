@@ -25,10 +25,11 @@ classifiers = [
 
 dependencies = [
     'requests',
+    'httpx',
 ]
 
 [tool.setuptools]
-packages = ["bubble_api"]
+packages = ["bubble_api", "bubble_api.asyncio"]
 
 [project.urls]
 "Homepage" = "https://github.com/settorac-nina/bubble-api"
