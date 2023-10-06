@@ -278,11 +278,14 @@ class BubbleClient:
     ):
         bubble_type = self.format_bubble_type(bubble_type)
 
-        return list(
-            islice(
-                (obj async for obj in self.get_objects_gen(bubble_type, constraints, **kwargs)), max_objects
-            )
-        )
+        results = list()
+        async for obj in self.get_objects_gen(bubble_type, constraints, **kwargs):
+            if max_objects is not None and len(results) >= max_objects:
+                break
+
+            results.append(obj)
+
+        return results
 
     async def run_workflow(
         self, wf_name: str, params: dict | None = None, method: str = "POST", **kwargs
