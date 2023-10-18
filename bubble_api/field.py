@@ -38,6 +38,18 @@ class Field:
             "is_not_empty",
         )
 
+    def is_empty_list(self):
+        return Constraint(
+            self.field_name,
+            "empty",
+        )
+
+    def is_not_empty_list(self):
+        return Constraint(
+            self.field_name,
+            "not empty",
+        )
+
     def text_contains(self, text):
         return Constraint(
             self.field_name,
