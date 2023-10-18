@@ -52,6 +52,26 @@ def test__field_to_constraint__is_not_empty():
     }
 
 
+def test__field_to_constraint__is_empty_list():
+    res = Field("key").is_empty_list()
+
+    assert isinstance(res, Constraint)
+    assert res.to_dict() == {
+        "key": "key",
+        "constraint_type": "empty",
+    }
+
+
+def test__field_to_constraint__is_not_empty_list():
+    res = Field("key").is_not_empty_list()
+
+    assert isinstance(res, Constraint)
+    assert res.to_dict() == {
+        "key": "key",
+        "constraint_type": "not empty",
+    }
+
+
 def test__field_to_constraint__text_contains():
     res = Field("key").text_contains("sub_text")
 
